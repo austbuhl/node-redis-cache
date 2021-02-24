@@ -10,6 +10,9 @@ const BASE_URL = 'https://pokeapi.co/api/v2/pokemon/'
 const app = express()
 const client = redis.createClient(REDIS_PORT)
 
+// Set response
+const setResponse = (details) => `<h1>${details}</h1>`
+
 // Make request to PokeAPI to get stats
 const getStats = async (req, res, next) => {
   try {
@@ -24,13 +27,26 @@ const getStats = async (req, res, next) => {
     // Set data in Redis
     client.setex(id, 3600, pokeDetails)
 
-    // res.send(setResponse())
+    res.send(setResponse(pokeDetails))
   } catch (error) {
     console.error(error)
     res.status(500)
   }
 }
 
-app.get('/pokemon/:id', getStats)
+// Cache middleware
+const cache = (req, res, next) => {
+  const { id } = req.params
+  client.get(id, (err, data) => {
+    if (err) throw err
+    if (data) {
+      res.send(setResponse(data))
+    } else {
+      next()
+    }
+  })
+}
+
+app.get('/pokemon/:id', cache, getStats)
 
 app.listen(PORT, () => console.log(`App listening on port ${PORT}`))
