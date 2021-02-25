@@ -5,11 +5,10 @@ const redis = require('redis')
 const PORT = process.env.PORT || 5000
 const REDIS_PORT = process.env.REDIS_PORT || 6379
 
-const BASE_URL = 'https://pokeapi.co/api/v2/pokemon/'
-
 const app = express()
 const client = redis.createClient(REDIS_PORT)
 
+const BASE_URL = 'https://pokeapi.co/api/v2/pokemon/'
 // Set response
 const setResponse = (details) => `<h1>${details}</h1>`
 
@@ -25,8 +24,7 @@ const getStats = async (req, res, next) => {
     const pokeDetails = `Pokemon number ${id} is ${name}. They are ${height} decimetres tall and ${weight} hectograms heavy.`
 
     // Set data in Redis
-    client.setex(id, 3600, pokeDetails)
-
+    client.set(id, pokeDetails)
     res.send(setResponse(pokeDetails))
   } catch (error) {
     console.error(error)
